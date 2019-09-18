@@ -7,7 +7,7 @@ class Scope {
 
 }
 
-type StackCheck = {
+type StackCheckOpcode = {
     type: 'StackCheck',
 };
 
@@ -38,7 +38,7 @@ type AddOpcode = {
 
 // @link https://github.com/v8/v8/blob/master/src/compiler/opcodes.h
 // @link https://github.com/v8/v8/blob/master/src/interpreter/bytecodes.h
-type Opcode = StackCheck | LdaZeroOpcode | LdaSmiOpcode | StarOpcode | LdarOpcode | AddOpcode;
+type Opcode = StackCheckOpcode | LdaZeroOpcode | LdaSmiOpcode | StarOpcode | LdarOpcode | AddOpcode;
 
 class Program {
     get opcodes(): Opcode[] {
@@ -54,6 +54,7 @@ class Program {
 
 type OpcodeExecutor<O> = (opcode: O) => any;
 type OpcodeHandlers = {
+    StackCheck: OpcodeExecutor<StackCheckOpcode>;
     Star: OpcodeExecutor<StarOpcode>;
     LdaZero: OpcodeExecutor<LdaZeroOpcode>;
     LdaSmi: OpcodeExecutor<LdaSmiOpcode>;
@@ -68,29 +69,30 @@ class VirtualMachine {
     protected r1: any;
 
     protected handlers: OpcodeHandlers = {
+        StackCheck: () => {},
         // Store accumulator to register <dst>.
-        'Star': (op) => {
+        Star: (op) => {
             this.putToRegister(
                 op.reg,
                 this.acc.pop()
             );
         },
         // Load literal '0' into the accumulator.
-        'LdaZero': () => {
+        LdaZero: () => {
             this.acc.push(0);
         },
         // Load an integer literal into the accumulator as a Smi.
-        'LdaSmi': (op) => {
+        LdaSmi: (op) => {
             this.acc.push(op.operand[0]);
         },
         // Load accumulator with value from register <src>.
-        'Ldar': (op) => {
+        Ldar: (op) => {
             this.acc.push(
                 this.getFromRegister(op.reg)
             )
         },
         // Add register <src> to accumulator.
-        'Add': (op) => {
+        Add: (op) => {
             this.acc.push(
                 this.acc.pop() + this.getFromRegister(op.reg)
             )
@@ -127,7 +129,7 @@ class VirtualMachine {
     {
         for (const opcode of program.opcodes) {
             if (opcode.type in this.handlers) {
-                this.handlers[opcode.type](opcode);
+                this.handlers[opcode.type](opcode as any);
             } else {
                 throw new Error(`Unsupported opcode ${opcode.type}`)
             }
@@ -142,6 +144,9 @@ class VirtualMachine {
 const vm = new VirtualMachine();
 vm.execute(
     new Program([
+        {
+            type: 'StackCheck'
+        },
         {
             type: 'LdaSmi',
             operand: [3],
