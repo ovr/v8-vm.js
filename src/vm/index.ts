@@ -65,8 +65,7 @@ type OpcodeHandlers = {
 
 class VirtualMachine {
     protected acc: any[] = [];
-    protected r0: any;
-    protected r1: any;
+    protected registers: {[key: string]: any} = {};
 
     protected handlers: OpcodeHandlers = {
         StackCheck: () => {},
@@ -101,28 +100,16 @@ class VirtualMachine {
 
     protected getFromRegister(reg: string)
     {
-        switch (reg) {
-            case 'r0':
-                return this.r0;
-            case 'r1':
-                return this.r1;
-            default:
-                throw new Error(`Unknown register: ${reg}`);
+        if (reg in this.registers) {
+            return this.registers[reg];
         }
+
+        throw new Error(`Unknown register: ${reg}`);
     }
 
     protected putToRegister(reg: string, value: number)
     {
-        switch (reg) {
-            case 'r0':
-                this.r0 = value;
-                break;
-            case 'r1':
-                this.r1 = value;
-                break;
-            default:
-                throw new Error(`Unknown register: ${reg}`);
-        }
+        this.registers[reg] = value;
     }
 
     public execute(program: Program)
@@ -135,9 +122,8 @@ class VirtualMachine {
             }
         }
 
-        console.log('Acc', this.acc);
-        console.log('r0', this.r0);
-        console.log('r1', this.r1);
+        console.log('Accumulator', this.acc);
+        console.log('Registers', this.registers);
     }
 }
 
