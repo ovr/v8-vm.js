@@ -1,6 +1,6 @@
 {
   "name": "v8-vm.js",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Small virtual machine based on V8 Interpreter bytecode and powered on JS",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

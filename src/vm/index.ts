@@ -41,7 +41,7 @@ type AddOpcode = {
 type Opcode = StackCheckOpcode | LdaZeroOpcode | LdaSmiOpcode | StarOpcode | LdarOpcode | AddOpcode;
 type Instructions = {[address: string]: Opcode};
 
-class Program {
+export class Program {
     get opcodes(): Instructions {
         return this._opcodes;
     }
@@ -64,9 +64,24 @@ type OpcodeHandlers = {
     [key: string]: OpcodeExecutor<any>;
 };
 
-class VirtualMachine {
-    protected acc: any[] = [];
-    protected registers: {[key: string]: any} = {};
+type Accumulator = any[];
+type Registers = {[key: string]: any};
+
+type ExecutionResult = {
+    acc: Accumulator,
+    registers: Registers,
+};
+
+type ExecutionStep = {
+    opcode: Opcode;
+    address: string;
+    acc: Accumulator;
+    registers: Registers,
+};
+
+export class VirtualMachine {
+    protected acc: Accumulator = [];
+    protected registers: Registers = {};
 
     protected handlers: OpcodeHandlers = {
         StackCheck: () => {},
@@ -113,7 +128,7 @@ class VirtualMachine {
         this.registers[reg] = value;
     }
 
-    public execute(program: Program)
+    public execute(program: Program): ExecutionResult
     {
         for (const [address, opcode] of Object.entries(program.opcodes)) {
             if (opcode.type in this.handlers) {
@@ -123,11 +138,13 @@ class VirtualMachine {
             }
         }
 
-        console.log('Accumulator', this.acc);
-        console.log('Registers', this.registers);
+        return {
+            acc: this.acc,
+            registers: this.registers,
+        };
     }
 
-    public* executor(program: Program)
+    public* executor(program: Program): Generator<ExecutionStep, ExecutionResult>
     {
         for (const [address, opcode] of Object.entries(program.opcodes)) {
             if (opcode.type in this.handlers) {
@@ -144,45 +161,9 @@ class VirtualMachine {
             }
         }
 
-        console.log('Accumulator', this.acc);
-        console.log('Registers', this.registers);
+        return {
+            acc: this.acc,
+            registers: this.registers,
+        };
     }
-}
-
-const vm = new VirtualMachine();
-const executor = vm.executor(
-    new Program({
-        0: {
-            type: 'StackCheck'
-        },
-        1: {
-            type: 'LdaSmi',
-            operand: [3],
-        },
-        2: {
-            type: 'Star',
-            reg: 'r0',
-        },
-        3: {
-            type: 'LdaSmi',
-            operand: [4],
-        },
-        4: {
-            type: 'Star',
-            reg: 'r1',
-        },
-        5: {
-            type: 'Ldar',
-            reg: 'r1',
-        },
-        6: {
-            type: 'Add',
-            reg: 'r0',
-            operand: [0]
-        },
-    })
-);
-
-for (const op of executor) {
-    console.log(op);
 }
