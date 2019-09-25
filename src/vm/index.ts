@@ -39,15 +39,16 @@ type AddOpcode = {
 // @link https://github.com/v8/v8/blob/master/src/compiler/opcodes.h
 // @link https://github.com/v8/v8/blob/master/src/interpreter/bytecodes.h
 type Opcode = StackCheckOpcode | LdaZeroOpcode | LdaSmiOpcode | StarOpcode | LdarOpcode | AddOpcode;
+type Instructions = {[address: string]: Opcode};
 
 class Program {
-    get opcodes(): Opcode[] {
+    get opcodes(): Instructions {
         return this._opcodes;
     }
 
-    private _opcodes: Opcode[] = [];
+    private _opcodes: Instructions = {};
 
-    constructor(opcodes: Opcode[]) {
+    constructor(opcodes: Instructions) {
         this._opcodes = opcodes;
     }
 }
@@ -114,9 +115,30 @@ class VirtualMachine {
 
     public execute(program: Program)
     {
-        for (const opcode of program.opcodes) {
+        for (const [address, opcode] of Object.entries(program.opcodes)) {
             if (opcode.type in this.handlers) {
                 this.handlers[opcode.type](opcode as any);
+            } else {
+                throw new Error(`Unsupported opcode ${opcode.type}`)
+            }
+        }
+
+        console.log('Accumulator', this.acc);
+        console.log('Registers', this.registers);
+    }
+
+    public* executor(program: Program)
+    {
+        for (const [address, opcode] of Object.entries(program.opcodes)) {
+            if (opcode.type in this.handlers) {
+                this.handlers[opcode.type](opcode as any);
+
+                yield {
+                    opcode,
+                    address,
+                    acc: this.acc,
+                    registers: this.registers,
+                };
             } else {
                 throw new Error(`Unsupported opcode ${opcode.type}`)
             }
@@ -128,35 +150,39 @@ class VirtualMachine {
 }
 
 const vm = new VirtualMachine();
-vm.execute(
-    new Program([
-        {
+const executor = vm.executor(
+    new Program({
+        0: {
             type: 'StackCheck'
         },
-        {
+        1: {
             type: 'LdaSmi',
             operand: [3],
         },
-        {
+        2: {
             type: 'Star',
             reg: 'r0',
         },
-        {
+        3: {
             type: 'LdaSmi',
             operand: [4],
         },
-        {
+        4: {
             type: 'Star',
             reg: 'r1',
         },
-        {
+        5: {
             type: 'Ldar',
             reg: 'r1',
         },
-        {
+        6: {
             type: 'Add',
             reg: 'r0',
             operand: [0]
         },
-    ])
+    })
 );
+
+for (const op of executor) {
+    console.log(op);
+}
