@@ -1,0 +1,39 @@
+.Emulator {
+
+}
+
+.Row-Active {
+  background-color: green;
+}
+
+.CodeArea {
+  visibility: hidden;
+  float: left;
+  /* width: 500px; */
+  /* height: 800px; */
+  font-size: 14px;
+}
+
+.ByteCodeArea {
+  float: left;
+  width: 800px;
+  margin-left: 15px;
+  text-align: left;
+}
+
+.VmInfoArea {
+  float: left;
+  width: 500px;
+  margin-left: 15px;
+}
+
+.ByteCodeArea .Row {
+  float: left;
+  width: 100%;
+}
+
+.ByteCodeArea .Row div {
+  display: inline-block;
+  float: left;
+  padding-right: 10px;
+}
