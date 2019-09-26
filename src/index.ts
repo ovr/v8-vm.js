@@ -30,6 +30,12 @@ type LdarOpcode = {
     reg: string
 };
 
+type TestLessThanOpcode = {
+    type: 'TestLessThan';
+    reg: string;
+    slot: string;
+};
+
 type AddOpcode = {
     type: 'Add';
     reg: string;
@@ -61,6 +67,7 @@ type OpcodeHandlers = {
     LdaSmi: OpcodeExecutor<LdaSmiOpcode>;
     Ldar: OpcodeExecutor<LdarOpcode>;
     Add: OpcodeExecutor<AddOpcode>;
+    TestLessThan: OpcodeExecutor<TestLessThanOpcode>;
     [key: string]: OpcodeExecutor<any>;
 };
 
@@ -82,6 +89,7 @@ type ExecutionStep = {
 export class VirtualMachine {
     protected acc: Accumulator = [];
     protected registers: Registers = {};
+    protected accumulator: Registers = {};
 
     protected handlers: OpcodeHandlers = {
         StackCheck: () => {},
@@ -111,8 +119,25 @@ export class VirtualMachine {
             this.acc.push(
                 this.acc.pop() + this.getFromRegister(op.reg)
             )
+        },
+        TestLessThan: (op) => {
+            const left = this.getSlotFromAccumulator(op.slot);
+            const right = this.getFromRegister(op.reg);
+
+            this.acc.push(
+                left < right
+            );
         }
     };
+
+    protected getSlotFromAccumulator(slot: string)
+    {
+        if (this.registers[slot]) {
+            return this.registers[slot];
+        }
+
+        throw new Error(`Unable to get value from accumulator by slot: ${slot}`);
+    }
 
     protected getFromRegister(reg: string)
     {
