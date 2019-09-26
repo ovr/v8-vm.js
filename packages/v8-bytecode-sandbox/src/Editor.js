@@ -135,6 +135,30 @@ export default class Editor extends PureComponent {
         )
     }
 
+    onExecuteTillFinishClick = () => {
+        if (this.state.executor) {
+            for (const opcode of this.state.executor) {
+                console.log('tick', opcode);
+
+                this.setState({
+                    realm: opcode,
+                })
+            }
+        }
+    }
+
+    onReset = () => {
+        const { code } = this.state;
+
+        if (code) {
+            this.setState({
+                executor: (new VirtualMachine()).executor(new Program(code)),
+                last: null,
+                realm: null,
+            })
+        }
+    }
+
     onNextTickClick = () => {
         if (this.state.executor) {
             const last = this.state.executor.next();
@@ -155,8 +179,9 @@ export default class Editor extends PureComponent {
         return (
             <div className="VmInfoArea">
                 <div>
-                    <button onClick={this.onNextTickClick}>Next</button>
-                    <button>Reset</button>
+                    <button onClick={this.onNextTickClick} className="btn tick-btn">Tick</button>
+                    <button onClick={this.onExecuteTillFinishClick} className="btn execute-btn">Execute</button>
+                    <button onClick={this.onReset} className="btn reset-btn">Reset</button>
                 </div>
                 {
                     realm ? (
@@ -224,14 +249,11 @@ export default class Editor extends PureComponent {
         return (
             <div className="Emulator">
                 <div>
-                    <button onClick={() => this.loadExample(defaultByteCodeAExample)}>
-                        Example 1
+                    <button className="btn" onClick={() => this.loadExample(defaultByteCodeAExample)}>
+                        {"Example (a + b)"}
                     </button>
-                    <button onClick={() => this.loadExample(defaultByteCodeBExample)}>
-                        Example 2
-                    </button>
-                    <button onClick={() => this.loadExample(defaultByteCodeCExample)}>
-                        Example 3
+                    <button className="btn" onClick={() => this.loadExample(defaultByteCodeBExample)}>
+                        {"Example (while loop with total number < 100)"}
                     </button>
                 </div>
                 <div>

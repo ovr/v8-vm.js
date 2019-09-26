@@ -37,3 +37,24 @@
   float: left;
   padding-right: 10px;
 }
+
+.btn {
+  padding: 6px;
+  margin: 4px;
+  font-size: 28px;
+}
+
+.tick-btn {
+  background-color: green;
+  color: #000;
+}
+
+.execute-btn {
+  background-color: red;
+  color: #000;
+}
+
+.reset-btn {
+  background-color: black;
+  color: #fff;
+}
