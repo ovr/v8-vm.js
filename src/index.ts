@@ -113,6 +113,7 @@ export class VirtualMachine {
     protected acc: Accumulator = [];
     protected registers: Registers = {};
     protected accumulator: Registers = {};
+    protected nextAddress: string = '0x1';
 
     protected handlers: OpcodeHandlers = {
         StackCheck: () => {},
@@ -161,10 +162,11 @@ export class VirtualMachine {
         JumpIfFalse: (op) => {
             const result = this.acc.pop();
             if (result === false) {
-                throw new Error('Unable to jump');
+                this.nextAddress = op.address;
             }
         },
-        JumpLoop: () => {
+        JumpLoop: (op) => {
+            this.nextAddress = op.address;
         },
     };
 
@@ -198,12 +200,10 @@ export class VirtualMachine {
 
     public execute(program: Program): ExecutionResult
     {
-        for (const [address, opcode] of Object.entries(program.opcodes)) {
-            if (opcode.type in this.handlers) {
-                this.handlers[opcode.type](opcode as any);
-            } else {
-                throw new Error(`Unsupported opcode ${opcode.type} at ${address}`)
-            }
+        const executor = this.executor(program);
+
+        for (const opcode in executor) {
+
         }
 
         return {
@@ -214,18 +214,40 @@ export class VirtualMachine {
 
     public* executor(program: Program): Generator<ExecutionStep, ExecutionResult>
     {
-        for (const [address, opcode] of Object.entries(program.opcodes)) {
-            if (opcode.type in this.handlers) {
-                this.handlers[opcode.type](opcode as any);
+        const queue = Object.keys(program.opcodes);
+
+        this.nextAddress = queue[0];
+
+        while (true) {
+            if (this.nextAddress in program.opcodes) {
+                const opcode = program.opcodes[this.nextAddress];
+
+                if (opcode.type in this.handlers) {
+                    this.handlers[opcode.type](opcode as any);
+                } else {
+                    throw new Error(`Unsupported opcode ${opcode.type} at ${this.nextAddress}`)
+                }
 
                 yield {
                     opcode,
-                    address,
+                    address: this.nextAddress,
                     acc: this.acc,
                     registers: this.registers,
                 };
+
+                const index = queue.findIndex((v) => v === this.nextAddress);
+                if (index !== -1) {
+                    const nextAddress = queue[index + 1];
+                    if (nextAddress) {
+                        this.nextAddress = queue[index + 1];
+                    } else {
+                        break;
+                    }
+                } else {
+                    break;
+                }
             } else {
-                throw new Error(`Unsupported opcode ${opcode.type} at ${address}`)
+                throw new Error(`Unknown address: "${this.nextAddress}"`)
             }
         }
 
