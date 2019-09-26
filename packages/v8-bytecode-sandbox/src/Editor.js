@@ -35,12 +35,50 @@ const defaultByteCodeAExample = {
 };
 
 const defaultByteCodeBExample = {
-    '0x00000001': {
+    '0x33053be60556': {
         type: 'StackCheck'
     },
-    '0x00000002': {
+    '0x33053be60557': {
+        type: 'LdaZero',
+    },
+    '0x33053be60558': {
+        type: 'Star',
+        reg: 'r0',
+    },
+    '0x33053be6055a': {
         type: 'LdaSmi',
-        operand: [3],
+        operand: [100],
+    },
+    '0x33053be6055c': {
+        type: 'TestLessThan',
+        reg: 'r0',
+        slot: 0,
+    },
+    '0x33053be6055f': {
+        type: 'JumpIfFalse',
+        address: '0x33053be6056b',
+    },
+    '0x33053be60561': {
+        type: 'StackCheck'
+    },
+    '0x33053be60562': {
+        type: 'Ldar',
+        reg: 'r0'
+    },
+    '0x33053be60564': {
+        type: 'Inc',
+        slot: 1
+    },
+    '0x33053be60566': {
+        type: 'Star',
+        reg: 'r0'
+    },
+    '0x33053be60568': {
+        type: 'JumpLoop',
+        address: '0x33053be6055a'
+    },
+    '0x33053be6056b': {
+        type: 'Return',
     },
 };
 
