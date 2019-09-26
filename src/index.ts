@@ -134,7 +134,7 @@ export class VirtualMachine {
             if (opcode.type in this.handlers) {
                 this.handlers[opcode.type](opcode as any);
             } else {
-                throw new Error(`Unsupported opcode ${opcode.type}`)
+                throw new Error(`Unsupported opcode ${opcode.type} at ${address}`)
             }
         }
 
@@ -157,7 +157,7 @@ export class VirtualMachine {
                     registers: this.registers,
                 };
             } else {
-                throw new Error(`Unsupported opcode ${opcode.type}`)
+                throw new Error(`Unsupported opcode ${opcode.type} at ${address}`)
             }
         }
 
