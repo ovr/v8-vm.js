@@ -11,6 +11,25 @@ type StackCheckOpcode = {
     type: 'StackCheck',
 };
 
+type JumpIfFalseOpcode = {
+    type: 'JumpIfFalse',
+    address: string;
+};
+
+type JumpLoopOpcode = {
+    type: 'JumpLoop',
+    address: string;
+};
+
+type IncOpcode = {
+    type: 'Inc',
+    slot: number;
+};
+
+type ReturnOpcode = {
+    type: 'Return',
+};
+
 type LdaZeroOpcode = {
     type: 'LdaZero',
 };
@@ -33,7 +52,7 @@ type LdarOpcode = {
 type TestLessThanOpcode = {
     type: 'TestLessThan';
     reg: string;
-    slot: string;
+    slot: number;
 };
 
 type AddOpcode = {
@@ -44,7 +63,7 @@ type AddOpcode = {
 
 // @link https://github.com/v8/v8/blob/master/src/compiler/opcodes.h
 // @link https://github.com/v8/v8/blob/master/src/interpreter/bytecodes.h
-type Opcode = StackCheckOpcode | LdaZeroOpcode | LdaSmiOpcode | StarOpcode | LdarOpcode | AddOpcode;
+type Opcode = StackCheckOpcode | JumpIfFalseOpcode | JumpLoopOpcode | ReturnOpcode | IncOpcode | LdaZeroOpcode | LdaSmiOpcode | StarOpcode | LdarOpcode | AddOpcode | TestLessThanOpcode;
 type Instructions = {[address: string]: Opcode};
 
 export class Program {
@@ -62,6 +81,10 @@ export class Program {
 type OpcodeExecutor<O> = (opcode: O) => any;
 type OpcodeHandlers = {
     StackCheck: OpcodeExecutor<StackCheckOpcode>;
+    Return: OpcodeExecutor<ReturnOpcode>;
+    Inc: OpcodeExecutor<IncOpcode>;
+    JumpIfFalse: OpcodeExecutor<JumpIfFalseOpcode>;
+    JumpLoop: OpcodeExecutor<JumpLoopOpcode>;
     Star: OpcodeExecutor<StarOpcode>;
     LdaZero: OpcodeExecutor<LdaZeroOpcode>;
     LdaSmi: OpcodeExecutor<LdaSmiOpcode>;
@@ -93,6 +116,7 @@ export class VirtualMachine {
 
     protected handlers: OpcodeHandlers = {
         StackCheck: () => {},
+        Return: () => {},
         // Store accumulator to register <dst>.
         Star: (op) => {
             this.putToRegister(
@@ -121,19 +145,38 @@ export class VirtualMachine {
             )
         },
         TestLessThan: (op) => {
-            const left = this.getSlotFromAccumulator(op.slot);
+            const left = this.getBySlotFromAccumulator(op.slot);
             const right = this.getFromRegister(op.reg);
 
             this.acc.push(
-                left < right
+                left > right
             );
-        }
+        },
+        Inc: (op) => {
+            this.putBySlotInAccumulator(
+                op.slot,
+                this.getBySlotFromAccumulator(op.slot) + 1
+            );
+        },
+        JumpIfFalse: (op) => {
+            const result = this.acc.pop();
+            if (result === false) {
+                throw new Error('Unable to jump');
+            }
+        },
+        JumpLoop: () => {
+        },
     };
 
-    protected getSlotFromAccumulator(slot: string)
+    protected putBySlotInAccumulator(slot: number, value: any)
     {
-        if (this.registers[slot]) {
-            return this.registers[slot];
+        this.acc[slot] = value;
+    }
+
+    protected getBySlotFromAccumulator(slot: number)
+    {
+        if (slot in this.acc) {
+            return this.acc[slot];
         }
 
         throw new Error(`Unable to get value from accumulator by slot: ${slot}`);
