@@ -2,8 +2,12 @@
 
 }
 
+.Row-Before {
+  background-color: rgb(193, 205, 61);
+}
+
 .Row-Active {
-  background-color: green;
+  background-color: rgb(12, 244, 12);
 }
 
 .CodeArea {

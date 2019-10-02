@@ -92,6 +92,7 @@ export default class Editor extends PureComponent {
     state = {
         codeParseError: null,
         executor: null,
+        before: null,
         realm: null,
         code: {},
     };
@@ -116,10 +117,20 @@ export default class Editor extends PureComponent {
         return (
             <div className="ByteCodeArea">
                 {Object.entries(code).map(([address, opcode]) => {
+                    let className = 'Row';
+
                     const active = this.state.realm && this.state.realm.address == address;
+                    if (active) {
+                        className = 'Row Row-Active';
+                    } else {
+                        const before = this.state.before && this.state.before.address == address;
+                        if (before) {
+                            className = 'Row Row-Before';
+                        }
+                    }
 
                     return (
-                        <div className={active ? "Row Row-Active" : "Row"} key={`row-${address}`}>
+                        <div className={className} key={`row-${address}`}>
                             <div>{address}</div>
                             <div>{opcode.type}</div>
                             <div>
@@ -167,6 +178,7 @@ export default class Editor extends PureComponent {
     
             if (!last.done) {
                 this.setState({
+                    before: this.state.realm || null,
                     realm: last.value,
                 })
             }
