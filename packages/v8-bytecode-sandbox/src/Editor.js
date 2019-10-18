@@ -129,16 +129,27 @@ export default class Editor extends PureComponent {
                         }
                     }
 
+                    let infoParts = [];
+
+                    if (opcode.reg) {
+                        infoParts.push(opcode.reg);
+                    }
+
+                    if (opcode.operand) {
+                        infoParts.push('[' + opcode.operand + ']');
+                    }
+
+                    let info = infoParts.join(',');
+
+                    if (opcode.address) {
+                        info += ' @' + opcode.address;
+                    }
+
                     return (
                         <div className={className} key={`row-${address}`}>
                             <div>{address}</div>
                             <div>{opcode.type}</div>
-                            <div>
-                                {JSON.stringify({
-                                    reg: opcode.reg,
-                                    operand: opcode.operand
-                                })}
-                            </div>
+                            <div>{info}</div>
                         </div>
                     );
                 })}
