@@ -105,6 +105,7 @@ type ExecutionResult = {
 type ExecutionStep = {
     opcode: Opcode;
     address: string;
+    next: string;
     acc: Accumulator;
     registers: Registers,
 };
@@ -220,17 +221,24 @@ export class VirtualMachine {
 
         while (true) {
             if (this.nextAddress in program.opcodes) {
-                const opcode = program.opcodes[this.nextAddress];
+                /**
+                 * Bytecode execution is not sequential, there are instructions
+                 * with ability to jump to address, let's store address of current opcode
+                 * because nextAddress can be changed
+                 */
+                const address = this.nextAddress;
+                const opcode = program.opcodes[address];
 
                 if (opcode.type in this.handlers) {
                     this.handlers[opcode.type](opcode as any);
                 } else {
-                    throw new Error(`Unsupported opcode ${opcode.type} at ${this.nextAddress}`)
+                    throw new Error(`Unsupported opcode ${opcode.type} at ${address}`)
                 }
 
                 yield {
                     opcode,
-                    address: this.nextAddress,
+                    address,
+                    next: this.nextAddress,
                     acc: this.acc,
                     registers: this.registers,
                 };
