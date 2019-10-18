@@ -8,7 +8,7 @@ const executor = vm.executor(
         },
         1: {
             type: 'LdaSmi',
-            operand: [3],
+            operand: 3,
         },
         2: {
             type: 'Star',
@@ -16,7 +16,7 @@ const executor = vm.executor(
         },
         3: {
             type: 'LdaSmi',
-            operand: [4],
+            operand: 4,
         },
         4: {
             type: 'Star',
@@ -29,7 +29,7 @@ const executor = vm.executor(
         6: {
             type: 'Add',
             reg: 'r0',
-            operand: [0]
+            operand: 0
         },
     })
 );

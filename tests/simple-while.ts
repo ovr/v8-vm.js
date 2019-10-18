@@ -41,12 +41,11 @@ const executor = vm.executor(
         },
         '0x33053be6055a': {
             type: 'LdaSmi',
-            operand: [100],
+            operand: 100,
         },
         '0x33053be6055c': {
             type: 'TestLessThan',
             reg: 'r0',
-            slot: 0,
         },
         '0x33053be6055f': {
             type: 'JumpIfFalse',
@@ -61,7 +60,7 @@ const executor = vm.executor(
         },
         '0x33053be60564': {
             type: 'Inc',
-            slot: 1
+            operand: 1,
         },
         '0x33053be60566': {
             type: 'Star',
@@ -76,6 +75,8 @@ const executor = vm.executor(
         },
     })
 );
+
+console.log(executor);
 
 for (const op of executor) {
     console.log(op);

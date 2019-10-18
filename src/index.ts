@@ -23,7 +23,7 @@ type JumpLoopOpcode = {
 
 type IncOpcode = {
     type: 'Inc',
-    slot: number;
+    operand: number;
 };
 
 type ReturnOpcode = {
@@ -36,7 +36,7 @@ type LdaZeroOpcode = {
 
 type LdaSmiOpcode = {
     type: 'LdaSmi',
-    operand: number[]
+    operand: number
 };
 
 type StarOpcode = {
@@ -52,13 +52,12 @@ type LdarOpcode = {
 type TestLessThanOpcode = {
     type: 'TestLessThan';
     reg: string;
-    slot: number;
 };
 
 type AddOpcode = {
     type: 'Add';
     reg: string;
-    operand: number[];
+    operand: number;
 };
 
 // @link https://github.com/v8/v8/blob/master/src/compiler/opcodes.h
@@ -106,6 +105,7 @@ type ExecutionStep = {
     opcode: Opcode;
     address: string;
     next: string;
+    sequential: boolean;
     acc: Accumulator;
     registers: Registers,
 };
@@ -132,7 +132,7 @@ export class VirtualMachine {
         },
         // Load an integer literal into the accumulator as a Smi.
         LdaSmi: (op) => {
-            this.acc.push(op.operand[0]);
+            this.acc.push(op.operand);
         },
         // Load accumulator with value from register <src>.
         Ldar: (op) => {
@@ -147,7 +147,7 @@ export class VirtualMachine {
             )
         },
         TestLessThan: (op) => {
-            const left = this.getBySlotFromAccumulator(op.slot);
+            const left = this.acc.pop();
             const right = this.getFromRegister(op.reg);
 
             this.acc.push(
@@ -155,9 +155,8 @@ export class VirtualMachine {
             );
         },
         Inc: (op) => {
-            this.putBySlotInAccumulator(
-                op.slot,
-                this.getBySlotFromAccumulator(op.slot) + 1
+            this.acc.push(
+                this.acc.pop() + 1
             );
         },
         JumpIfFalse: (op) => {
@@ -170,20 +169,6 @@ export class VirtualMachine {
             this.nextAddress = op.address;
         },
     };
-
-    protected putBySlotInAccumulator(slot: number, value: any)
-    {
-        this.acc[slot] = value;
-    }
-
-    protected getBySlotFromAccumulator(slot: number)
-    {
-        if (slot in this.acc) {
-            return this.acc[slot];
-        }
-
-        throw new Error(`Unable to get value from accumulator by slot: ${slot}`);
-    }
 
     protected getFromRegister(reg: string)
     {
@@ -229,31 +214,49 @@ export class VirtualMachine {
                 const address = this.nextAddress;
                 const opcode = program.opcodes[address];
 
+                /**
+                 * Change nextAddress to 0x1 to detect indirection instructions like jump
+                 */
+                this.nextAddress = '0x1';
+
                 if (opcode.type in this.handlers) {
                     this.handlers[opcode.type](opcode as any);
                 } else {
                     throw new Error(`Unsupported opcode ${opcode.type} at ${address}`)
                 }
 
+                const sequential = this.nextAddress === '0x1';
+                console.log('sequential', sequential);
+
+                /**
+                 * Executed handler didnt specify nextAddress for jump
+                 * Let's use sequential execution
+                 */
+                if (sequential) {
+                    let nextAddress = null;
+
+                    const index = queue.findIndex((v) => v === address);
+                    if (index !== -1) {
+                        if (queue[index + 1]) {
+                            nextAddress = queue[index + 1];
+                        }
+                    }
+
+                    if (nextAddress) {
+                        this.nextAddress = nextAddress;
+                    } else {
+                        break;
+                    }
+                }
+
                 yield {
                     opcode,
                     address,
+                    sequential,
                     next: this.nextAddress,
                     acc: this.acc,
                     registers: this.registers,
                 };
-
-                const index = queue.findIndex((v) => v === this.nextAddress);
-                if (index !== -1) {
-                    const nextAddress = queue[index + 1];
-                    if (nextAddress) {
-                        this.nextAddress = queue[index + 1];
-                    } else {
-                        break;
-                    }
-                } else {
-                    break;
-                }
             } else {
                 throw new Error(`Unknown address: "${this.nextAddress}"`)
             }
