@@ -3,30 +3,30 @@ import {VirtualMachine, Program} from './../src';
 const vm = new VirtualMachine();
 const executor = vm.executor(
     new Program({
-        0: {
+        '0x0': {
             type: 'StackCheck'
         },
-        1: {
+        '0x1': {
             type: 'LdaSmi',
             operand: 3,
         },
-        2: {
+        '0x2': {
             type: 'Star',
             reg: 'r0',
         },
-        3: {
+        '0x3': {
             type: 'LdaSmi',
             operand: 4,
         },
-        4: {
+        '0x4': {
             type: 'Star',
             reg: 'r1',
         },
-        5: {
+        '0x5': {
             type: 'Ldar',
             reg: 'r1',
         },
-        6: {
+        '0x6': {
             type: 'Add',
             reg: 'r0',
             operand: 0

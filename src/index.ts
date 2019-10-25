@@ -226,7 +226,6 @@ export class VirtualMachine {
                 }
 
                 const sequential = this.nextAddress === '0x1';
-                console.log('sequential', sequential);
 
                 /**
                  * Executed handler didnt specify nextAddress for jump
@@ -245,6 +244,16 @@ export class VirtualMachine {
                     if (nextAddress) {
                         this.nextAddress = nextAddress;
                     } else {
+                        // Last opcode in program
+                        yield {
+                            opcode,
+                            address,
+                            sequential,
+                            next: this.nextAddress,
+                            acc: this.acc,
+                            registers: this.registers,
+                        };
+
                         break;
                     }
                 }
