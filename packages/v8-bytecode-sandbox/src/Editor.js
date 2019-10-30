@@ -9,7 +9,7 @@ const defaultByteCodeAExample = {
     },
     '0x00000002': {
         type: 'LdaSmi',
-        operand: [3],
+        operand: 3,
     },
     '0x00000003': {
         type: 'Star',
@@ -17,7 +17,7 @@ const defaultByteCodeAExample = {
     },
     '0x00000004': {
         type: 'LdaSmi',
-        operand: [4],
+        operand: 4,
     },
     '0x00000005': {
         type: 'Star',
@@ -47,7 +47,7 @@ const defaultByteCodeBExample = {
     },
     '0x33053be6055a': {
         type: 'LdaSmi',
-        operand: [100],
+        operand: 100,
     },
     '0x33053be6055c': {
         type: 'TestLessThan',
