@@ -10,24 +10,36 @@
   background-color: rgb(12, 244, 12);
 }
 
+.ByteCodeArea .Row > div {
+  font-size: 38px;
+}
+
+.VmInfoArea {
+  font-size: 46px;
+}
+
 .CodeArea {
   visibility: hidden;
-  float: left;
+  /* float: left; */
   /* width: 500px; */
   /* height: 800px; */
-  font-size: 14px;
+  /* font-size: 14px; */
+
+  position: absolute;
+  left: -9999px;
+  top: -9999px;
 }
 
 .ByteCodeArea {
   float: left;
-  width: 800px;
+  width: 900px;
   margin-left: 15px;
   text-align: left;
 }
 
 .VmInfoArea {
   float: left;
-  width: 500px;
+  width: 400px;
   margin-left: 15px;
 }
 
